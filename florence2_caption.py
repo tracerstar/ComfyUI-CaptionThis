@@ -85,13 +85,27 @@ def describe_single_image(image, model, processor, prompt, device, dtype, num_be
     inputs = processor(text=prompt, images=pil_image, return_tensors="pt", do_rescale=False).to(dtype).to(
         device)
 
-    generated_ids = model.generate(
-        input_ids=inputs["input_ids"],
-        pixel_values=inputs["pixel_values"],
-        max_new_tokens=max_new_tokens,
-        do_sample=do_sample,
-        num_beams=num_beams,
-    )
+    try:
+        generated_ids = model.generate(
+            input_ids=inputs["input_ids"],
+            pixel_values=inputs["pixel_values"],
+            max_new_tokens=max_new_tokens,
+            do_sample=do_sample,
+            num_beams=num_beams,
+        )
+    except AttributeError as e:
+        if "NoneType object has no attribute 'shape'" in str(e) or "NoneType' object has no attribute 'shape'" in str(e):
+            # 遇到 transformers past_key_values bug，自动重试
+            generated_ids = model.generate(
+                input_ids=inputs["input_ids"],
+                pixel_values=inputs["pixel_values"],
+                max_new_tokens=max_new_tokens,
+                do_sample=do_sample,
+                num_beams=num_beams,
+                use_cache=False,
+            )
+        else:
+            raise
 
     results = processor.batch_decode(generated_ids, skip_special_tokens=False)[0]
 
