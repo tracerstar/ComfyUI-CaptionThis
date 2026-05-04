@@ -40,10 +40,10 @@ class JanusProModelLoader:
         # device = "cuda" if torch.cuda.is_available() else "cpu"
         device = mm.get_torch_device()
 
-        if not os.path.exists(the_model_path):
-            mie_log(f"Local model {model_name} not found at {the_model_path}, download from huggingface")
-            from huggingface_hub import snapshot_download
-            snapshot_download(repo_id=model_name, local_dir=the_model_path, local_dir_use_symlinks=False)
+        # if not os.path.exists(the_model_path):
+        #     mie_log(f"Local model {model_name} not found at {the_model_path}, download from huggingface")
+        #     from huggingface_hub import snapshot_download
+        #     snapshot_download(repo_id=model_name, local_dir=the_model_path, local_dir_use_symlinks=False)
 
         try:
             dtype = torch.bfloat16
