@@ -44,10 +44,6 @@ class JanusProModelLoader:
             mie_log(f"Local model {model_name} not found at {the_model_path}, download from huggingface")
             from huggingface_hub import snapshot_download
             snapshot_download(repo_id=model_name, local_dir=the_model_path, local_dir_use_symlinks=False)
-        model = AutoModelForCausalLM.from_pretrained(
-            the_model_path,
-            trust_remote_code=True
-        )
 
         try:
             dtype = torch.bfloat16
@@ -55,9 +51,15 @@ class JanusProModelLoader:
         except RuntimeError:
             dtype = torch.float16
 
-        model = model.to(dtype).to(device).eval()
+        model = AutoModelForCausalLM.from_pretrained(
+            the_model_path,
+            trust_remote_code=True,
+            torch_dtype=dtype,
+            device_map=str(device),
+            local_files_only=True,
+        ).eval()
 
-        processor = VLChatProcessor.from_pretrained(the_model_path)
+        processor = VLChatProcessor.from_pretrained(the_model_path, local_files_only=True)
 
         return {"model": model, "processor": processor},
 
